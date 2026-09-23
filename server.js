@@ -101,15 +101,15 @@ io.on("connection", (socket) => {
 
 
         games[code] = {
-            players: [],
-            currentPlayer: 0,
-            positions: {},
-            lastRoll: null,
-            finished: false,
-
-            pendingAction: false,
-            pendingPlayerId: null
-        };
+		players: [],
+    		currentPlayer: 0,
+    		positions: {},
+    		lastRoll: null,
+    		finished: false,
+    		pendingAction: false,
+    		pendingPlayerId: null,
+    		squares: squares
+	};
 
 
         games[code].players.push({

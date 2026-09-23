@@ -578,27 +578,12 @@ function showSquare(position) {
 // =========================
 
 function getSquareText(position) {
-
-    const specialSquares = {
-
-        5: "Avanza dos casillas",
-
-        10: "Retrocede dos casillas",
-
-        35: "Retrocede tres casillas",
-
-        37: "Insertar texto",
-
-        52: "¡FINAL!"
-    };
-
-    return (
-        specialSquares[position] ||
-        "Insertar texto"
+    const square = gameState.squares.find(
+        square => square.number === position
     );
 
+    return square ? square.text : "Insertar texto";
 }
-
 
 // =========================
 // TIRAR DADO

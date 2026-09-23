@@ -42,7 +42,7 @@ const squares = [
     { number: 18, text: "Elige compañero para las próximas dos rondas" },
     { number: 19, text: "Zona segura" },
     { number: 20, text: "Mímica" },
-    { number: 21, text: "Vuelves al inicio, jaja" },
+    
     { number: 22, text: "Bebe el más alto" },
     { number: 23, text: "Bebe el de tu izquierda" },
     { number: 24, text: "Beben los hombres" },
@@ -106,9 +106,10 @@ io.on("connection", (socket) => {
     		lastRoll: null,
     		finished: false,
     		pendingAction: false,
-    		pendingPlayerId: null,
-		skipNextTurn: false,
-    		squares: squares
+		pendingPlayerId: null,
+		skipNextTurnPlayerId: null,
+		skipMessage: false,
+		squares: squares
 	};
 
 
@@ -241,12 +242,12 @@ io.on("connection", (socket) => {
             return;
         }
 
-	if (game.skipNextTurn) {
-	    game.skipNextTurn = false;
+	if (game.skipNextTurnPlayerId === socket.id) {
+	    game.skipNextTurnPlayerId = null;
 	    game.pendingAction = true;
 	    game.pendingPlayerId = socket.id;
 	    game.skipMessage = true;
-
+	
 	    io.to(code).emit("gameUpdated", game);
 	    return;
 	}
@@ -364,6 +365,12 @@ io.on("connection", (socket) => {
 	        return;
 	    }
 	
+	// VOLVER AL INICIO
+	
+    	    if (square.action === "returnStart") {
+    	        game.positions[socket.id] = 1;
+	    }
+
 	    // MOVIMIENTO ESPECIAL
 	
 	    if (square.action === "move") {
@@ -403,9 +410,16 @@ io.on("connection", (socket) => {
 	
 	    // SALTAR TURNO
 	
-	    if (square.action === "skipTurn") {
-	        game.skipNextTurn = true;
-	    }
+	    // SALTAR TURNO
+
+	if (square.action === "skipTurn") {
+	    const nextPlayerIndex =
+	        (game.currentPlayer + 1) %
+	        game.players.length;
+	
+	    game.skipNextTurnPlayerId =
+	        game.players[nextPlayerIndex].id;
+	}
 	
 	    // PASAR AL SIGUIENTE JUGADOR
 	

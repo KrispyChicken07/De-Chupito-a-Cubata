@@ -29,6 +29,9 @@ const joinButton =
 const rollButton =
     document.getElementById("rollButton");
 
+const restartButton =
+    document.getElementById("restartButton");
+
 const message =
     document.getElementById("message");
 
@@ -384,17 +387,16 @@ function renderBoard() {
 function renderTurn() {
 
     if (gameState.finished) {
-
-        turnMessage.textContent =
-            "🏆 ¡Ha ganado " +
-            gameState.winner +
-            "!";
-
-        rollButton.disabled =
-            true;
-
-        return;
-    }
+	    turnMessage.textContent =
+	        "🏆 ¡Ha ganado " + gameState.winner + "!";
+	
+	    rollButton.disabled = true;
+	    restartButton.classList.remove("hidden");
+	
+	    return;
+	}
+	
+	restartButton.classList.add("hidden");
 
     const currentPlayer =
         gameState.players[
@@ -649,3 +651,7 @@ function getDiceEmoji(number) {
     ];
 
 }
+
+restartButton.addEventListener("click", () => {
+    location.reload();
+});

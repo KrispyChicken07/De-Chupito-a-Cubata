@@ -439,47 +439,66 @@ function renderTurn() {
 // =========================
 
 function checkSquare() {
-
-    if (
-        !gameState ||
-        gameState.finished
-    ) {
-        return;
-    }
+    if (!gameState || gameState.finished) return;
 
     const currentPlayer =
-        gameState.players[
-            gameState.currentPlayer
-        ];
+        gameState.players[gameState.currentPlayer];
 
-    if (!currentPlayer) {
-        return;
-    }
+    if (!currentPlayer) return;
 
     if (
         gameState.pendingAction &&
-        gameState.pendingPlayerId ===
-        socket.id
+        gameState.pendingPlayerId === socket.id
     ) {
-
         if (!waitingForContinue) {
-
             waitingForContinue = true;
 
-            showSquare(
-                gameState.positions[
-                    socket.id
-                ]
-            );
+            if (gameState.skipMessage) {
+                showSkipTurn();
+            } else {
+                showSquare(gameState.positions[socket.id]);
+            }
         }
-
     } else {
-
         waitingForContinue = false;
     }
-
 }
 
+function showSkipTurn() {
+    if (document.getElementById("squareModal")) return;
+
+    const modal = document.createElement("div");
+    modal.id = "squareModal";
+    modal.className = "modal";
+
+    const content = document.createElement("div");
+    content.className = "modal-content";
+
+    const title = document.createElement("h2");
+    title.textContent = "Turno saltado";
+
+    const text = document.createElement("p");
+    text.textContent = "Tu turno ha sido saltado";
+
+    const button = document.createElement("button");
+    button.textContent = "CONTINUAR";
+
+    button.addEventListener("click", () => {
+        button.disabled = true;
+        modal.remove();
+
+        waitingForContinue = false;
+
+        socket.emit("continueSquare", gameCode);
+    });
+
+    content.appendChild(title);
+    content.appendChild(text);
+    content.appendChild(button);
+
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+}
 
 // =========================
 // MOSTRAR CASILLA

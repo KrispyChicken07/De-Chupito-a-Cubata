@@ -107,6 +107,7 @@ io.on("connection", (socket) => {
     		finished: false,
     		pendingAction: false,
     		pendingPlayerId: null,
+		skipNextTurn: false,
     		squares: squares
 	};
 
@@ -240,6 +241,16 @@ io.on("connection", (socket) => {
             return;
         }
 
+	if (game.skipNextTurn) {
+	    game.skipNextTurn = false;
+	    game.pendingAction = true;
+	    game.pendingPlayerId = socket.id;
+	    game.skipMessage = true;
+
+	    io.to(code).emit("gameUpdated", game);
+	    return;
+	}
+
 
         const dice =
             Math.floor(Math.random() * 6) + 1;
@@ -300,112 +311,118 @@ io.on("connection", (socket) => {
 
     socket.on("continueSquare", (code) => {
 
-        const game = games[code];
+	    const game = games[code];
 
-        if (!game || game.finished) {
-            return;
-        }
+	    if (!game || game.finished) {
+	        return;
+	    }
 
-        if (!game.pendingAction) {
-            return;
-        }
+	    if (!game.pendingAction) {
+	        return;
+	    }
+	
+	    if (game.pendingPlayerId !== socket.id) {
+	        return;
+	    }
+	
+	    // SI ES UN TURNO QUE HA SIDO SALTADO
+	    if (game.skipMessage) {
 
-        if (game.pendingPlayerId !== socket.id) {
-            return;
-        }
+	        game.skipMessage = false;
+	        game.pendingAction = false;
+	        game.pendingPlayerId = null;
+	        game.lastRoll = null;
 
+	        game.currentPlayer =
+	            (game.currentPlayer + 1) %
+	            game.players.length;
+	
+	        io.to(code).emit(
+	            "gameUpdated",
+	            game
+	        );
+	
+	        return;
+	    }
 
-        const player =
-            game.players[game.currentPlayer];
+	    const player =
+	        game.players[game.currentPlayer];
+	
+	    if (!player) {
+	        return;
+	    }
+	
+	    const position =
+	        game.positions[socket.id];
+	
+	    const square =
+	        squares.find(
+	            s => s.number === position
+	        );
+	
+	    if (!square) {
+	        return;
+	    }
+	
+	    // MOVIMIENTO ESPECIAL
+	
+	    if (square.action === "move") {
+	
+	        let newPosition =
+	            position + square.amount;
+	
+	        if (newPosition < 1) {
+	            newPosition = 1;
+	        }
+	
+	        if (newPosition > 52) {
+	            newPosition = 52;
+	        }
 
-        if (!player) {
-            return;
-        }
+	        game.positions[socket.id] =
+	            newPosition;
 
-
-        const position =
-            game.positions[socket.id];
-
-
-        const square =
-            squares.find(
-                s => s.number === position
-            );
-
-
-        if (!square) {
-            return;
-        }
-
-
-        // MOVIMIENTO ESPECIAL
-
-        if (square.action === "move") {
-
-            let newPosition =
-                position + square.amount;
-
-
-            if (newPosition < 1) {
-                newPosition = 1;
-            }
-
-            if (newPosition > 52) {
-                newPosition = 52;
-            }
-
-
-            game.positions[socket.id] =
-                newPosition;
-
-
-            if (newPosition === 52) {
-
-                game.finished = true;
-
-                game.winner =
-                    player.name;
-
-                game.pendingAction = false;
-                game.pendingPlayerId = null;
-
-                io.to(code).emit(
-                    "gameUpdated",
-                    game
-                );
-
-                return;
-            }
-        }
-
-
-        // SALTAR TURNO
-
-        if (square.action === "skipTurn") {
-
-            game.currentPlayer =
-                (game.currentPlayer + 2)
-                % game.players.length;
-
-        } else {
-
-            game.currentPlayer =
-                (game.currentPlayer + 1)
-                % game.players.length;
-        }
-
-
-        game.pendingAction = false;
-        game.pendingPlayerId = null;
-
-        game.lastRoll = null;
-
-
-        io.to(code).emit(
-            "gameUpdated",
-            game
-        );
-    });
+	        if (newPosition === 52) {
+	
+	            game.finished = true;
+	
+	            game.winner =
+	                player.name;
+	
+	            game.pendingAction = false;
+	            game.pendingPlayerId = null;
+	
+	            io.to(code).emit(
+	                "gameUpdated",
+	                game
+	            );
+	
+	            return;
+	        }
+	    }
+	
+	    // SALTAR TURNO
+	
+	    if (square.action === "skipTurn") {
+	        game.skipNextTurn = true;
+	    }
+	
+	    // PASAR AL SIGUIENTE JUGADOR
+	
+	    game.currentPlayer =
+	        (game.currentPlayer + 1) %
+	        game.players.length;
+	
+	    game.pendingAction = false;
+	    game.pendingPlayerId = null;
+	
+	    game.lastRoll = null;
+	
+	    io.to(code).emit(
+	        "gameUpdated",
+	        game
+	    );
+	});
 
 
     // =========================

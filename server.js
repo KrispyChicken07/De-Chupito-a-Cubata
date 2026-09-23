@@ -33,7 +33,7 @@ const squares = [
     { number: 9, text: "Añade alcohol" },
     { number: 10, text: "Retrocede dos casillas", action: "move", amount: -2 },
     { number: 11, text: "Haz una regla" },
-    { number: 12, text: "Salta tu turno" },
+    { number: 12, text: "Salta tu turno", action: "skipTurn" },
     { number: 13, text: "Elige a alguien y no riáis" },
     { number: 14, text: "Tú, sí tú, BEBE" },
     { number: 15, text: "TODO DE GOLPE" },
@@ -42,7 +42,7 @@ const squares = [
     { number: 18, text: "Elige compañero para las próximas dos rondas" },
     { number: 19, text: "Zona segura" },
     { number: 20, text: "Mímica" },
-    
+    { number: 21, text: "Vuelves al inicio, jaja", action: "returnStart" },
     { number: 22, text: "Bebe el más alto" },
     { number: 23, text: "Bebe el de tu izquierda" },
     { number: 24, text: "Beben los hombres" },
@@ -312,132 +312,132 @@ io.on("connection", (socket) => {
 
     socket.on("continueSquare", (code) => {
 
-	    const game = games[code];
+    const game = games[code];
 
-	    if (!game || game.finished) {
-	        return;
-	    }
+    if (!game || game.finished) {
+        return;
+    }
 
-	    if (!game.pendingAction) {
-	        return;
-	    }
-	
-	    if (game.pendingPlayerId !== socket.id) {
-	        return;
-	    }
-	
-	    // SI ES UN TURNO QUE HA SIDO SALTADO
-	    if (game.skipMessage) {
+    if (!game.pendingAction) {
+        return;
+    }
 
-	        game.skipMessage = false;
-	        game.pendingAction = false;
-	        game.pendingPlayerId = null;
-	        game.lastRoll = null;
+    if (game.pendingPlayerId !== socket.id) {
+        return;
+    }
 
-	        game.currentPlayer =
-	            (game.currentPlayer + 1) %
-	            game.players.length;
-	
-	        io.to(code).emit(
-	            "gameUpdated",
-	            game
-	        );
-	
-	        return;
-	    }
+    // SI ES UN TURNO QUE HA SIDO SALTADO
+    if (game.skipMessage) {
 
-	    const player =
-	        game.players[game.currentPlayer];
-	
-	    if (!player) {
-	        return;
-	    }
-	
-	    const position =
-	        game.positions[socket.id];
-	
-	    const square =
-	        squares.find(
-	            s => s.number === position
-	        );
-	
-	    if (!square) {
-	        return;
-	    }
-	
-	// VOLVER AL INICIO
-	
-    	    if (square.action === "returnStart") {
-    	        game.positions[socket.id] = 1;
-	    }
+        game.skipMessage = false;
+        game.pendingAction = false;
+        game.pendingPlayerId = null;
+        game.lastRoll = null;
 
-	    // MOVIMIENTO ESPECIAL
-	
-	    if (square.action === "move") {
-	
-	        let newPosition =
-	            position + square.amount;
-	
-	        if (newPosition < 1) {
-	            newPosition = 1;
-	        }
-	
-	        if (newPosition > 52) {
-	            newPosition = 52;
-	        }
+        game.currentPlayer =
+            (game.currentPlayer + 1) %
+            game.players.length;
 
-	        game.positions[socket.id] =
-	            newPosition;
+        io.to(code).emit(
+            "gameUpdated",
+            game
+        );
 
-	        if (newPosition === 52) {
-	
-	            game.finished = true;
-	
-	            game.winner =
-	                player.name;
-	
-	            game.pendingAction = false;
-	            game.pendingPlayerId = null;
-	
-	            io.to(code).emit(
-	                "gameUpdated",
-	                game
-	            );
-	
-	            return;
-	        }
-	    }
-	
-	    // SALTAR TURNO
-	
-	    // SALTAR TURNO
+        return;
+    }
 
-	if (square.action === "skipTurn") {
-	    const nextPlayerIndex =
-	        (game.currentPlayer + 1) %
-	        game.players.length;
-	
-	    game.skipNextTurnPlayerId =
-	        game.players[nextPlayerIndex].id;
-	}
-	
-	    // PASAR AL SIGUIENTE JUGADOR
-	
-	    game.currentPlayer =
-	        (game.currentPlayer + 1) %
-	        game.players.length;
-	
-	    game.pendingAction = false;
-	    game.pendingPlayerId = null;
-	
-	    game.lastRoll = null;
-	
-	    io.to(code).emit(
-	        "gameUpdated",
-	        game
-	    );
-	});
+    const player =
+        game.players[game.currentPlayer];
 
+    if (!player) {
+        return;
+    }
+
+    let position =
+        game.positions[socket.id];
+
+    const square =
+        squares.find(
+            s => s.number === position
+        );
+
+    if (!square) {
+        return;
+    }
+
+    // VOLVER AL INICIO
+
+    if (square.action === "returnStart") {
+
+        game.positions[socket.id] = 1;
+
+        position = 1;
+    }
+
+    // MOVIMIENTO ESPECIAL
+
+    if (square.action === "move") {
+
+        let newPosition =
+            position + square.amount;
+
+        if (newPosition < 1) {
+            newPosition = 1;
+        }
+
+        if (newPosition > 52) {
+            newPosition = 52;
+        }
+
+        game.positions[socket.id] =
+            newPosition;
+
+        if (newPosition === 52) {
+
+            game.finished = true;
+
+            game.winner =
+                player.name;
+
+            game.pendingAction = false;
+            game.pendingPlayerId = null;
+
+            io.to(code).emit(
+                "gameUpdated",
+                game
+            );
+
+            return;
+        }
+    }
+
+    // SALTAR TURNO
+
+    if (square.action === "skipTurn") {
+
+        const nextPlayerIndex =
+            (game.currentPlayer + 1) %
+            game.players.length;
+
+        game.skipNextTurnPlayerId =
+            game.players[nextPlayerIndex].id;
+    }
+
+    // PASAR AL SIGUIENTE JUGADOR
+
+    game.currentPlayer =
+        (game.currentPlayer + 1) %
+        game.players.length;
+
+    game.pendingAction = false;
+    game.pendingPlayerId = null;
+    game.lastRoll = null;
+
+    io.to(code).emit(
+        "gameUpdated",
+        game
+    );
+});
 
     // =========================
     // DESCONECTAR

@@ -599,6 +599,10 @@ function showSquare(position) {
 // =========================
 
 function getSquareText(position) {
+    if (!gameState || !gameState.squares) {
+        return "Insertar texto";
+    }
+
     const square = gameState.squares.find(
         square => square.number === position
     );

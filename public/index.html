@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oca del Caos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>🎲 Oca del Caos</h1>
+
+
+        <!-- PANTALLA DE INICIO -->
+
+        <div id="startScreen">
+
+            <input
+                id="playerName"
+                type="text"
+                placeholder="Tu nombre"
+                maxlength="20"
+            >
+
+
+            <!-- SELECTOR DE COLOR -->
+
+            <h3>Elige tu color</h3>
+
+            <div id="colorPicker">
+
+                <button
+                    class="color-option selected"
+                    data-color="#9d4edd"
+                    style="background-color: #9d4edd;"
+                    aria-label="Morado"
+                    title="Morado"
+                ></button>
+
+                <button
+                    class="color-option"
+                    data-color="#4895ef"
+                    style="background-color: #4895ef;"
+                    aria-label="Azul"
+                    title="Azul"
+                ></button>
+
+                <button
+                    class="color-option"
+                    data-color="#43aa8b"
+                    style="background-color: #43aa8b;"
+                    aria-label="Verde"
+                    title="Verde"
+                ></button>
+
+                <button
+                    class="color-option"
+                    data-color="#f8961e"
+                    style="background-color: #f8961e;"
+                    aria-label="Naranja"
+                    title="Naranja"
+                ></button>
+
+                <button
+                    class="color-option"
+                    data-color="#f94144"
+                    style="background-color: #f94144;"
+                    aria-label="Rojo"
+                    title="Rojo"
+                ></button>
+
+                <button
+                    class="color-option"
+                    data-color="#f72585"
+                    style="background-color: #f72585;"
+                    aria-label="Rosa"
+                    title="Rosa"
+                ></button>
+
+                <button
+                    class="color-option"
+                    data-color="#f9c74f"
+                    style="background-color: #f9c74f;"
+                    aria-label="Amarillo"
+                    title="Amarillo"
+                ></button>
+
+                <button
+                    class="color-option"
+                    data-color="#4cc9f0"
+                    style="background-color: #4cc9f0;"
+                    aria-label="Turquesa"
+                    title="Turquesa"
+                ></button>
+
+            </div>
+
+
+            <button id="createButton">
+                Crear partida
+            </button>
+
+
+            <div class="separator">o</div>
+
+
+            <input
+                id="gameCode"
+                type="text"
+                placeholder="Código de partida"
+                maxlength="5"
+            >
+
+
+            <button id="joinButton">
+                Unirse a partida
+            </button>
+
+
+            <p id="message"></p>
+
+        </div>
+
+
+        <!-- PANTALLA DE PARTIDA -->
+
+        <div id="gameScreen" class="hidden">
+
+            <h2>
+                Partida: <span id="code"></span>
+            </h2>
+
+
+            <div id="players"></div>
+
+
+            <div class="game-area">
+
+                <div id="board"></div>
+
+
+                <div class="controls">
+
+                    <p id="turnMessage"></p>
+
+                    <div id="dice">🎲</div>
+
+                    <button id="rollButton">
+                        TIRAR DADO
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="game.js"></script>
+
+</body>
+</html>

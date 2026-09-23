@@ -21,7 +21,6 @@ const playerColors = [
     "#4cc9f0"
 ];
 
-me puedes confirmar que no hay faltas de ortografia?
 const squares = [
     { number: 1, text: "Elige a alguien para que se tome un chupito" },
     { number: 2, text: "Yo nunca nunca" },

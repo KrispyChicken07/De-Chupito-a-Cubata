@@ -333,52 +333,67 @@ function renderBoard() {
             );
         }
 
-        cell.textContent =
-            i;
+        cell.textContent = i;
 
-        gameState.players.forEach(
-            (player) => {
+        const playersOnCell =
+            gameState.players.filter(
+                player =>
+                    gameState.positions[player.id] === i
+            );
+
+        playersOnCell.forEach(
+            (player, index) => {
+
+                const piece =
+                    document.createElement(
+                        "span"
+                    );
+
+                piece.className =
+                    "player-piece";
+
+                piece.style.color =
+                    player.color;
+
+                piece.textContent =
+                    "●";
+
+                piece.title =
+                    player.name;
+
+                // Colocar las fichas en posiciones
+                // diferentes dentro de la casilla.
+
+                const positions = [
+                    [-6, -6],
+                    [6, -6],
+                    [-6, 6],
+                    [6, 6],
+                    [0, -8],
+                    [0, 8],
+                    [-8, 0],
+                    [8, 0]
+                ];
 
                 const position =
-                    gameState.positions[
-                        player.id
+                    positions[
+                        index % positions.length
                     ];
 
-                if (position === i) {
+                piece.style.transform =
+                    `translate(${position[0]}px, ${position[1]}px)`;
 
-                    const piece =
-                        document.createElement(
-                            "span"
-                        );
-
-                    piece.className =
-                        "player-piece";
-
-                    piece.style.color =
-                        player.color;
-
-                    piece.textContent =
-                        "●";
-
-                    piece.title =
-                        player.name;
-
-                    cell.appendChild(
-                        piece
-                    );
-                }
-
+                cell.appendChild(
+                    piece
+                );
             }
         );
 
         board.appendChild(
             cell
         );
-
     }
-
 }
-
 
 // =========================
 // TURNO
@@ -657,5 +672,6 @@ function getDiceEmoji(number) {
 }
 
 restartButton.addEventListener("click", () => {
-    location.reload();
+    socket.emit("restartGame", gameCode);
+
 });

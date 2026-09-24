@@ -411,18 +411,13 @@ io.on("connection", (socket) => {
         }
     }
 
-    // SALTAR TURNO
+    // SALTAR TURNO //
 
-    if (square.action === "skipTurn") {
-
-        const nextPlayerIndex =
-            (game.currentPlayer + 1) %
-            game.players.length;
-
-        game.skipNextTurnPlayerId =
-            game.players[nextPlayerIndex].id;
-    }
-
+	if (square.action === "skipTurn") {
+	
+	    game.skipNextTurnPlayerId =
+	        player.id;
+	}
     // PASAR AL SIGUIENTE JUGADOR
 
     game.currentPlayer =
@@ -438,6 +433,37 @@ io.on("connection", (socket) => {
         game
     );
 });
+
+    // =========================
+    // VOLVER A JUGAR
+    // =========================
+
+    socket.on("restartGame", (code) => {
+
+        const game = games[code];
+
+        if (!game) {
+            return;
+        }
+
+        game.currentPlayer = 0;
+        game.lastRoll = null;
+        game.finished = false;
+        game.winner = null;
+        game.pendingAction = false;
+        game.pendingPlayerId = null;
+        game.skipNextTurnPlayerId = null;
+        game.skipMessage = false;
+
+        game.players.forEach((player) => {
+            game.positions[player.id] = 1;
+        });
+
+        io.to(code).emit(
+            "gameUpdated",
+            game
+        );
+    });
 
     // =========================
     // DESCONECTAR
